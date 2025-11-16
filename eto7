@@ -1,0 +1,206 @@
+--// 🟥 Invisible Steal GUI
+if game.CoreGui:FindFirstChild("InvisibleStealGUI") then
+    game.CoreGui.InvisibleStealGUI:Destroy()
+end
+
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local localPlayer = Players.LocalPlayer
+
+--------------------------------------------------------
+-- GUI SETUP
+--------------------------------------------------------
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "InvisibleStealGUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+ScreenGui.ResetOnSpawn = false
+
+local outlineFrame = Instance.new("Frame")
+outlineFrame.Size = UDim2.new(0, 340, 0, 180)
+outlineFrame.Position = UDim2.new(0.5, -170, 0.5, -90)
+outlineFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+outlineFrame.BorderSizePixel = 0
+outlineFrame.Parent = ScreenGui
+Instance.new("UICorner", outlineFrame).CornerRadius = UDim.new(0, 10)
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(1, -6, 1, -6)
+mainFrame.Position = UDim2.new(0, 3, 0, 3)
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = outlineFrame
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 0, 36)
+title.Position = UDim2.new(0, 10, 0, 8)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Text = "Invisible Steal"
+title.Parent = mainFrame
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 36, 0, 28)
+closeBtn.Position = UDim2.new(1, -44, 0, 8)
+closeBtn.BackgroundColor3 = Color3.fromRGB(180, 30, 30)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.BorderSizePixel = 0
+closeBtn.Parent = mainFrame
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+closeBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+--------------------------------------------------------
+-- Toggle Button + Status Label
+--------------------------------------------------------
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0, 200, 0, 42)
+toggleBtn.Position = UDim2.new(0.5, -100, 0, 60)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+toggleBtn.Text = "Enable Invisible Steal"
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 20
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.BorderSizePixel = 0
+toggleBtn.Parent = mainFrame
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 10)
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, 0, 0, 30)
+statusLabel.Position = UDim2.new(0, 0, 0, 110)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Font = Enum.Font.GothamSemibold
+statusLabel.TextSize = 18
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.Text = "Invisible Steal : Inactive"
+statusLabel.Parent = mainFrame
+
+local enabled = false
+local hasRun = false
+
+--------------------------------------------------------
+-- INVISIBLE STEAL SCRIPT FUNCTION
+--------------------------------------------------------
+local function RunInvisibleSteal()
+    if hasRun then return end
+    hasRun = true
+
+    local plotsFolder = Workspace:FindFirstChild("Plots")
+    local myBase
+    local duplicatedBaseDone = false
+    local clonedPodiumsDone = false
+    local badPlayers = {"gagst34l3r", "13sabst34l3r", "TDNMTM_7", "Xerpier728", "light1234005"}
+
+    -- Preserve other logic functions: FindBase, Duplicate, HidePlayers, CleanModels, etc.
+    -- ... keep your existing logic here ...
+
+    -- ============================================
+    -- BLOCK GRAB ANIMATIONS COMPLETELY
+    -- ============================================
+    local function blockGrabAnimation(animTrack)
+        if animTrack.Animation and animTrack.Animation.AnimationId:lower():find("grab") then
+            animTrack:Stop()
+            animTrack:Destroy()
+        end
+    end
+
+    local function HookAnimator(animator)
+        local oldLoad = animator.LoadAnimation
+        animator.LoadAnimation = function(self, anim)
+            if anim.AnimationId:lower():find("grab") then
+                -- block it
+                local fakeTrack = {}
+                function fakeTrack:Play() end
+                function fakeTrack:Stop() end
+                return fakeTrack
+            else
+                return oldLoad(self, anim)
+            end
+        end
+        animator.DescendantAdded:Connect(function(desc)
+            if desc:IsA("AnimationTrack") then
+                blockGrabAnimation(desc)
+            end
+        end)
+    end
+
+    -- Apply hook to all Animators in Workspace
+    task.spawn(function()
+        while task.wait(0.2) do
+            for _, obj in ipairs(Workspace:GetDescendants()) do
+                if obj:IsA("Animator") then
+                    HookAnimator(obj)
+                end
+            end
+        end
+    end)
+    -- ============================================
+
+    -- Start your main loops and functions
+    -- ... keep your existing loop logic here ...
+end
+
+--------------------------------------------------------
+-- BUTTON LOGIC
+--------------------------------------------------------
+toggleBtn.MouseButton1Click:Connect(function()
+    enabled = not enabled
+    if enabled then
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        toggleBtn.Text = "Invisible Steal Active"
+        statusLabel.Text = "Invisible Steal : Active"
+        RunInvisibleSteal()
+    else
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+        toggleBtn.Text = "Enable Invisible Steal"
+        statusLabel.Text = "Invisible Steal : Inactive"
+    end
+end)
+
+--------------------------------------------------------
+-- DRAGGING
+--------------------------------------------------------
+local dragging, dragInput, startPos, startInputPos
+outlineFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        startPos = outlineFrame.Position
+        startInputPos = input.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+outlineFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - startInputPos
+        outlineFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
